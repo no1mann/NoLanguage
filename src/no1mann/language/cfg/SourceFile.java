@@ -32,8 +32,4 @@ public class SourceFile extends File{
 		return data.toString();
 	}
 	
-	public void clear(){
-		data = null;
-	}
-	
 }

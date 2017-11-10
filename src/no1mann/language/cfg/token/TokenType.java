@@ -1,0 +1,34 @@
+package no1mann.language.cfg.token;
+
+public enum TokenType {
+	//DATA VALUES
+	INT_VAL,
+	BOOL_VAL,
+	
+	//MATH OPERATOR
+	PLUS,
+	SUB,
+	MULT,
+	DIV,
+	POW,
+	MOD,
+	
+	//BOOLEAN OPERATOR
+	AND,
+	OR,
+	NOT,
+	EQUAL,
+	NOT_EQUAL,
+	GREATER,
+	GREATER_EQUAL,
+	LESS,
+	LESS_EQUAL,
+	
+	//STATEMENTS
+	MAIN,
+	INT_TYPE,
+	BOOL_TYPE,
+	
+	//OTHER
+	EOF
+}
