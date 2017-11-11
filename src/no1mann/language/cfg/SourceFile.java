@@ -6,7 +6,6 @@ import java.util.Scanner;
 
 public class SourceFile extends File{
 
-
 	private static final long serialVersionUID = 8344796844289554974L;
 	private StringBuilder data;
 	

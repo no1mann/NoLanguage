@@ -16,7 +16,6 @@ public class Tokenize{
 		
 		//Splits tokens up
 		String[] rawInput = file.getData().split(WHITE_SPACE);
-		
 		//Cycles through all tokens
 		for(String input : rawInput){
 			// Parse input
@@ -29,17 +28,20 @@ public class Tokenize{
 				tokenList.add(tokenReturn.token);
 			}
 		}
-		tokenList.add(new Token(TokenType.EOF, null));
+		//tokenList.add(new Token(TokenType.EOF, null));
 		return tokenList;
 	}
 	
 	private static TokenReturn parseToken(String input) throws InvalidInputException{
 		//Cycles through token matcher to find correct token
 		for(TokenType type : TokenType.values()){
-			Matcher match = type.getPattern().matcher(input);
+			
 			//If couldn't match with any token
 			if(type==TokenType.EOF)
 				break;
+			
+			//Try to match with input
+			Matcher match = type.getPattern().matcher(input);
 			if(match.find())
 				return new Tokenize().new TokenReturn(new Token(type, match.group(1)), match.group(2));
 		}
