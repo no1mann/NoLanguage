@@ -1,14 +1,19 @@
 package no1mann.language.cfg.parser;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class ASTree<T> {
+public class ASTree<T> implements Iterable<ASTree<T>>{
 	
 	private ArrayList<ASTree<T>> branches = new ArrayList<ASTree<T>>();
-	private T t;
+	private T value;
 	
 	public ASTree(T token){
-		this.t = token;
+		this.value = token;
+	}
+	
+	public void addBranch(T t){
+		addBranch(new ASTree<T>(t));
 	}
 	
 	public void addBranch(ASTree<T> branch){
@@ -16,7 +21,7 @@ public class ASTree<T> {
 	}
 	
 	public T getValue(){
-		return t;
+		return value;
 	}
 	
 	public ASTree<T> getBranch(int branchNumber){
@@ -25,6 +30,11 @@ public class ASTree<T> {
 	
 	public ArrayList<ASTree<T>> getBranches(){
 		return branches;
+	}
+
+	@Override
+	public Iterator<ASTree<T>> iterator() {
+		return branches.iterator();
 	}
 	
 }

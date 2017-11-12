@@ -1,6 +1,5 @@
 package no1mann.language.cfg.parser;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import no1mann.language.cfg.token.Token;
@@ -8,30 +7,40 @@ import no1mann.language.cfg.token.TokenType;
 
 public class Parser {
 	
+	private static final TokenType[] MATH_OPERATORS = {
+			TokenType.MOD, 
+			TokenType.PLUS, 
+			TokenType.SUB, 
+			TokenType.MULT, 
+			TokenType.DIV, 
+			TokenType.POW};
+	
+	private static final TokenType[] BOOLEAN_OPERATORS = {
+			TokenType.OR, 
+			TokenType.AND, 
+			TokenType.EQUAL, 
+			TokenType.GREATER_EQUAL, 
+			TokenType.GREATER, 
+			TokenType.LESS_EQUAL,
+			TokenType.LESS, 
+			TokenType.NOT };
+	
 	public static ASTree<Token> parse(List<Token> tokenList){
 		return parseExpression(tokenList);
 	}
 	
 	private static ASTree<Token> parseExpression(List<Token> tokenList){
-		SplitArray<Token> split = split(tokenList, new Token(TokenType.PLUS, "+"));
-		if(split!=null){
-			return generateTree(split);
+		for(TokenType type : MATH_OPERATORS){
+			SplitArray<Token> split = split(tokenList, new Token(type, ""));
+			if(split!=null){
+				return generateTree(split);
+			}
 		}
-		split = split(tokenList, new Token(TokenType.SUB, "-"));
-		if(split!=null){
-			return generateTree(split);
-		}
-		split = split(tokenList, new Token(TokenType.MULT, "*"));
-		if(split!=null){
-			return generateTree(split);
-		}
-		split = split(tokenList, new Token(TokenType.DIV, "/"));
-		if(split!=null){
-			return generateTree(split);
-		}
-		split = split(tokenList, new Token(TokenType.POW, "^"));
-		if(split!=null){
-			return generateTree(split);
+		for(TokenType type : BOOLEAN_OPERATORS){
+			SplitArray<Token> split = split(tokenList, new Token(type, ""));
+			if(split!=null){
+				return generateTree(split);
+			}
 		}
 		if(tokenList.size()==1){
 			Token token = tokenList.get(0);
@@ -62,8 +71,7 @@ public class Parser {
 	
 	private class SplitArray<T>{
 		
-		private List<T> left;
-		private List<T> right;
+		private List<T> left, right;
 		private T splitValue;
 		
 		public SplitArray(List<T> left, List<T> right, T splitValue){
@@ -71,17 +79,6 @@ public class Parser {
 			this.right = right;
 			this.splitValue = splitValue;
 		}
-		
-		public List<T> getLeft(){
-			return left;
-		}
-		
-		public List<T> getRight(){
-			return right;
-		}
-		
-		public T getSplitValue(){
-			return splitValue;
-		}
+
 	}
 }
