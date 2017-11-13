@@ -4,6 +4,8 @@ import java.util.List;
 
 import no1mann.language.cfg.SourceFile;
 import no1mann.language.cfg.exceptions.InvalidInputException;
+import no1mann.language.cfg.exceptions.TypeErrorException;
+import no1mann.language.cfg.executor.Executor;
 import no1mann.language.cfg.parser.ASTree;
 import no1mann.language.cfg.parser.Parser;
 import no1mann.language.cfg.token.Token;
@@ -16,13 +18,16 @@ public class Main {
 			
 			
 			SourceFile file = new SourceFile("C:\\Users\\Trevor\\Google Drive\\Workspaces\\Eclipse\\NoLanguage\\src\\no1mann\\language\\test.txt");
-			
-			ASTree<Token> tokens = Parser.parse(Tokenize.tokenize(file));
-			System.out.println(printTree(tokens,0));
+
+			ASTree<Token> tree = Parser.parse(Tokenize.tokenize(file));
+			System.out.println(printTree(tree, 0));
+			Executor.execute(tree);
 
 			
 			
 		} catch (InvalidInputException e) {
+			e.printStackTrace();
+		} catch (TypeErrorException e) {
 			e.printStackTrace();
 		}
 	}

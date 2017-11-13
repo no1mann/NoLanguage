@@ -59,7 +59,7 @@ public class Parser {
 	private static SplitArray<Token> split(List<Token> tokenList, Token splitToken){
 		int index = -1;
 		for(int i = 0; i < tokenList.size(); i++){
-			if(tokenList.get(i).equals(splitToken)){
+			if(tokenList.get(i).equals(splitToken.getTokenType())){
 				index = i;
 				break;
 			}

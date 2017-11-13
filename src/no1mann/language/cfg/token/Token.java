@@ -22,8 +22,11 @@ public class Token {
 		return value;
 	}
 	
-	public boolean equals(Token token){
-		return token.getTokenType()==type;
+	public boolean equals(Object token){
+		if(token instanceof TokenType){
+			return token.equals(type);
+		}
+		return false;
 	}
 	
 	public String toString(){

@@ -31,6 +31,10 @@ public class ASTree<T> implements Iterable<ASTree<T>>{
 	public ArrayList<ASTree<T>> getBranches(){
 		return branches;
 	}
+	
+	public int numberOfBranches(){
+		return branches.size();
+	}
 
 	@Override
 	public Iterator<ASTree<T>> iterator() {
