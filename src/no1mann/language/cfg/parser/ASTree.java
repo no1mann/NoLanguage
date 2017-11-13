@@ -16,8 +16,9 @@ public class ASTree<T> implements Iterable<ASTree<T>>{
 		addBranch(new ASTree<T>(t));
 	}
 	
-	public void addBranch(ASTree<T> branch){
+	public ASTree<T> addBranch(ASTree<T> branch){
 		branches.add(branch);
+		return this;
 	}
 	
 	public T getValue(){

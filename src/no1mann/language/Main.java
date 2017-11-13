@@ -4,6 +4,7 @@ import java.util.List;
 
 import no1mann.language.cfg.SourceFile;
 import no1mann.language.cfg.exceptions.InvalidInputException;
+import no1mann.language.cfg.exceptions.ParseException;
 import no1mann.language.cfg.exceptions.TypeErrorException;
 import no1mann.language.cfg.executor.Executor;
 import no1mann.language.cfg.parser.ASTree;
@@ -28,6 +29,8 @@ public class Main {
 		} catch (InvalidInputException e) {
 			e.printStackTrace();
 		} catch (TypeErrorException e) {
+			e.printStackTrace();
+		} catch (ParseException e){
 			e.printStackTrace();
 		}
 	}

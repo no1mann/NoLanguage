@@ -18,8 +18,8 @@ public enum TokenType {
 	//BOOLEAN OPERATOR
 	AND(Pattern.compile("^(&&)(.*)")),
 	OR(Pattern.compile("^(\\|\\|)(.*)")),
-	NOT(Pattern.compile("^(\\!)(.*)")),
 	EQUAL(Pattern.compile("^(==)(.*)")),
+	NOT_EQUAL(Pattern.compile("^(\\!=)(.*)")),
 	GREATER_EQUAL(Pattern.compile("^(>=)(.*)")),
 	GREATER(Pattern.compile("^(>)(.*)")),
 	LESS_EQUAL(Pattern.compile("^(<=)(.*)")),
