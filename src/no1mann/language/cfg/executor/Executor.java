@@ -26,10 +26,10 @@ public class Executor {
 		//Value
 		if(tree.numberOfBranches()==0){
 			if(tok.equals(TokenType.INT_VAL)){
-				return new Executor().new EnvironmentValue(EnvironmentType.INTEGER, tok.getValue());
+				return new Executor().new EnvironmentValue(EnvironmentType.INTEGER, Integer.parseInt((String)tok.getValue()));
 			}
 			else if(tok.equals(TokenType.BOOL_VAL)){
-				return new Executor().new EnvironmentValue(EnvironmentType.BOOLEAN, tok.getValue());
+				return new Executor().new EnvironmentValue(EnvironmentType.BOOLEAN, Boolean.parseBoolean((String)tok.getValue()));
 			}
 			else{
 				throw new TypeErrorException("Invalid data type provided of type: " + tok.getTokenType());

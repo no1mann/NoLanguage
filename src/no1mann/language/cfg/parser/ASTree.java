@@ -21,6 +21,19 @@ public class ASTree<T> implements Iterable<ASTree<T>>{
 		return this;
 	}
 	
+	public void replace(ASTree<T> tree, T replace){
+		for(int i = 0; i < branches.size(); i++){
+			ASTree<T> branch= branches.get(i);
+			if(branch.getValue().equals(replace)){
+				branches.set(i, tree);
+				return;
+			}
+			else{
+				branch.replace(tree, replace);
+			}
+		}
+	}
+	
 	public T getValue(){
 		return value;
 	}

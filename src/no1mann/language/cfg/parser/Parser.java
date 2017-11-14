@@ -1,5 +1,6 @@
 package no1mann.language.cfg.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import no1mann.language.cfg.exceptions.ParseException;
@@ -22,59 +23,21 @@ public class Parser {
 			TokenType.GREATER, 
 			TokenType.LESS_EQUAL,
 			TokenType.LESS};
+	private static int GLOBAL_COUNTER = 0;
+	
 	public static ASTree<Token> parse(List<Token> tokenList) throws ParseException{
+		GLOBAL_COUNTER = 0;
 		return parseExpression(tokenList);
 	}
 	
 	private static ASTree<Token> parseExpression(List<Token> tokenList) throws ParseException{
-		SplitArray<Token> split = split(tokenList, new Token(TokenType.LEFT_PAREN, ""), true);
-		if (split != null) {
-			SplitArray<Token> splitSecond = split(split.right, new Token(TokenType.RIGHT_PAREN, ""), false);
-			ASTree<Token> paren = parseExpression(splitSecond.left);
-			ASTree<Token> left, right;
-			Token leftSign, rightSign;
-			// Parenthesis around whole expression
-			if (splitSecond.right.isEmpty() && split.left.isEmpty()) {
-				return paren;
-			}
-			// Parenthesis at end of expression
-			else if (splitSecond.right.isEmpty() && !split.left.isEmpty()) {
-				left = parseExpression(split.left.subList(0, split.left.size() - 1));
-				leftSign = split.left.get(split.left.size() - 1);
-				return new ASTree<Token>(leftSign).addBranch(left).addBranch(paren);
-			}
-			// Parenthesis at start of expression
-			else if (!splitSecond.right.isEmpty() && split.left.isEmpty()) {
-				right = parseExpression(splitSecond.right.subList(1, splitSecond.right.size()));
-				rightSign = splitSecond.right.get(0);
-				return new ASTree<Token>(rightSign).addBranch(paren).addBranch(right);
-			} 
-			// Parenthesis in middle of expression
-			else {
-				left = parseExpression(split.left.subList(0, split.left.size() - 1));
-				leftSign = split.left.get(split.left.size() - 1);
-				right = parseExpression(splitSecond.right.subList(1, splitSecond.right.size()));
-				rightSign = splitSecond.right.get(0);
-				
-				TokenType highest = null;
-				for (TokenType type : OPERATORS) {
-					if (highest != null)
-						break;
-					if (type == rightSign.getTokenType()) {
-						ASTree<Token> temp = new ASTree<Token>(leftSign).addBranch(left).addBranch(paren);
-						ASTree<Token> returnTree = new ASTree<Token>(rightSign).addBranch(temp).addBranch(right);
-						return returnTree;
-					} else if (type == leftSign.getTokenType()) {
-						ASTree<Token> temp = new ASTree<Token>(rightSign).addBranch(paren).addBranch(right);
-						ASTree<Token> returnTree = new ASTree<Token>(leftSign).addBranch(left).addBranch(temp);
-						return returnTree;
-					}
-				}
-				throw new ParseException("Failure to parse " + tokenList.toString());
-			}
-		}
+		if(tokenList == null)
+			return null;
+		ASTree<Token> paren = splitParenthesis(tokenList);
+		if(paren != null)
+			return paren;
 		for(TokenType type : OPERATORS){
-			split = split(tokenList, new Token(type, ""), true);
+			SplitArray<Token> split = split(tokenList, new Token(type, ""), true);
 			if(split!=null)
 				return generateTree(split);
 		}
@@ -90,6 +53,77 @@ public class Parser {
 		tree.addBranch(parseExpression(split.left));
 		tree.addBranch(parseExpression(split.right));
 		return tree;
+	}
+	
+	private static ASTree<Token> splitParenthesis(List<Token> tokenList) throws ParseException {
+		int index = 0;
+		while (!tokenList.get(index).equals(TokenType.LEFT_PAREN) && index != tokenList.size() - 1)
+			index++;
+		
+		if (index == tokenList.size() - 1)
+			return null;
+		int last = index, find = 1, count = 0;
+		while ((count != find) && last != (tokenList.size()-1)) {
+			last++;
+			if (tokenList.get(last).equals(TokenType.LEFT_PAREN))
+				find++;
+			if (tokenList.get(last).equals(TokenType.RIGHT_PAREN))
+				count++;
+		}
+		if ((last == tokenList.size() - 1) && count != find)
+			throw new ParseException("Invalid parenthesis");
+		
+		int val = GLOBAL_COUNTER++;
+		ASTree<Token> paren = parseExpression(new ArrayList<Token>(tokenList.subList(index + 1, last)));
+		// Parenthesis around whole expression
+		if (last == tokenList.size() - 1 && index == 0) {
+			return paren;
+		}
+		// Parenthesis at end of expression
+		if (last == tokenList.size() - 1 && index != 0) {
+			List<Token> temp = new ArrayList<Token>(tokenList.subList(0, index));
+			temp.add(new Token(TokenType.TEMP, val));
+			ASTree<Token> left = parseExpression(temp);
+			left.replace(paren, new Token(TokenType.TEMP, val));
+			return left;
+		}
+		// Parenthesis at start of expression
+		if (last != tokenList.size() - 1 && index == 0) {
+			List<Token> temp = new ArrayList<Token>();
+			temp.add(new Token(TokenType.TEMP, val));
+			temp.addAll(new ArrayList<Token>(tokenList.subList(last+1, tokenList.size())));
+			ASTree<Token> right = parseExpression(temp);
+			right.replace(paren, new Token(TokenType.TEMP, val));
+			return right;
+		}
+		// Parenthesis in middle of expression
+		List<Token> temp = new ArrayList<Token>(tokenList.subList(0, index));
+		temp.add(new Token(TokenType.TEMP, val));
+		temp.addAll(new ArrayList<Token>(tokenList.subList((last+1), tokenList.size())));
+		ASTree<Token> parse = parseExpression(temp);
+		parse.replace(paren, new Token(TokenType.TEMP, val));
+		return parse;
+		
+		/*ASTree<Token> left = parseExpression(tokenList.subList(0, index - 1));
+		Token leftSign = tokenList.get(index - 1);
+		Token rightSign = tokenList.get(last + 1);
+		ASTree<Token> right = parseExpression(tokenList.subList(last + 2, tokenList.size()));
+
+		TokenType highest = null;
+		for (TokenType type : OPERATORS) {
+			if (highest != null)
+				break;
+			if (type == rightSign.getTokenType()) {
+				ASTree<Token> temp = new ASTree<Token>(leftSign).addBranch(left).addBranch(paren);
+				ASTree<Token> returnTree = new ASTree<Token>(rightSign).addBranch(temp).addBranch(right);
+				return returnTree;
+			} else if (type == leftSign.getTokenType()) {
+				ASTree<Token> temp = new ASTree<Token>(rightSign).addBranch(paren).addBranch(right);
+				ASTree<Token> returnTree = new ASTree<Token>(leftSign).addBranch(left).addBranch(temp);
+				return returnTree;
+			}
+		}
+		throw new ParseException("Failure to parse " + tokenList.toString());*/
 	}
 	
 	private static SplitArray<Token> split(List<Token> tokenList, Token splitToken, boolean first){

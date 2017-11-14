@@ -26,6 +26,9 @@ public class Token {
 		if(token instanceof TokenType){
 			return token.equals(type);
 		}
+		else if(token instanceof Token){
+			return ((Token) token).getTokenType().equals(type) && ((Token) token).getValue().equals(value);
+		}
 		return false;
 	}
 	
