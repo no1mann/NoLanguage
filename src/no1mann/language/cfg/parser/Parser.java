@@ -9,6 +9,11 @@ import no1mann.language.cfg.token.TokenType;
 
 public class Parser {
 	
+	public static final TokenType[] VALUE_TYPES = {
+		TokenType.INT_TYPE,
+		TokenType.BOOL_TYPE
+	};
+	
 	private static final TokenType[] OPERATORS = {
 			TokenType.MOD, 
 			TokenType.PLUS, 
@@ -29,7 +34,66 @@ public class Parser {
 	
 	public static ASTree<Token> parse(List<Token> tokenList) throws ParseException{
 		GLOBAL_COUNTER = 0;
-		return parseExpression(tokenList);
+		return parseStatement(tokenList);
+	}
+	
+	private static boolean match(List<Token> tokenList, TokenType tok, int index){
+		return tokenList.get(index).equals(tok);
+	}
+	
+	private static boolean match(List<Token> tokenList, TokenType tok){
+		return match(tokenList, tok, 0);
+	}
+	
+	private static ASTree<Token> parseStatement(List<Token> tokenList) throws ParseException{
+		if(tokenList.size()==0)
+			return new ASTree<Token>(new Token(TokenType.END_OF_STATEMENT));
+		//Parses if statement
+		if(match(tokenList, TokenType.IF)){
+			Bounds<Integer> expBounds = getParenBounds(tokenList, 0, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
+			ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
+			Bounds<Integer> trueBounds = getParenBounds(tokenList, (expBounds.right+1), TokenType.LEFT_BRACKET, TokenType.RIGHT_BRACKET);
+			ASTree<Token> trueStatement = parseStatement(new ArrayList<Token>(tokenList.subList(trueBounds.left+1, trueBounds.right)));
+			ASTree<Token> ifStatement = (new ASTree<Token>(new Token(TokenType.IF)).addBranch(exp).addBranch(trueStatement));
+			int start = trueBounds.right+1;
+			if(	match(tokenList, TokenType.RIGHT_BRACKET, trueBounds.right) &&
+				match(tokenList, TokenType.ELSE, trueBounds.right+1)){
+				Bounds<Integer> falseBounds = getParenBounds(tokenList, (trueBounds.right+2), TokenType.LEFT_BRACKET, TokenType.RIGHT_BRACKET);
+				ASTree<Token> falseStatment = parseStatement(new ArrayList<Token>(tokenList.subList(falseBounds.left+1, falseBounds.right)));
+				ifStatement.addBranch(falseStatment);
+				start = falseBounds.right+1;
+			} 
+			else if(!match(tokenList, TokenType.RIGHT_BRACKET, trueBounds.right))
+				throw new ParseException("Failure to parse if statement: missing bracket in " + tokenList.toString());
+			return ifStatement.addBranch(parseStatement(new ArrayList<Token>(tokenList.subList(start, tokenList.size()))));
+		}
+		//Parses assignment
+		else if(match(tokenList, TokenType.VAR_NAME) && match(tokenList, TokenType.ASSIGN, 1)){
+			int index = findValue(tokenList, new Token(TokenType.SEMICOLON));
+			if(index==-1)
+				throw new ParseException("Failure to parse, missing semicolon");
+			ASTree<Token> expression = parseExpression(new ArrayList<Token>(tokenList.subList(2, index)));
+			return new ASTree<Token>(new Token(TokenType.VAR_NAME, tokenList.get(0).getValue())).addBranch(expression).addBranch(parseStatement(new ArrayList<Token>(tokenList.subList(index+1, tokenList.size()))));
+		}
+		//Parses print
+		else if(match(tokenList, TokenType.PRINT)){
+			Bounds<Integer> expBounds = getParenBounds(tokenList, 1, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
+			ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
+			if(match(tokenList, TokenType.SEMICOLON, (expBounds.right+1))){
+				return new ASTree<Token>(new Token(TokenType.PRINT)).addBranch(exp).addBranch(parseStatement(new ArrayList<Token>(tokenList.subList(expBounds.right+2, tokenList.size()))));
+			}else
+				throw new ParseException("Failure to parse, missing semicolon");
+		}
+		else {
+		//Parses declaration
+			for(TokenType tok : VALUE_TYPES){
+				if(match(tokenList, tok) && match(tokenList, TokenType.VAR_NAME, 1) && match(tokenList, TokenType.SEMICOLON, 2)){
+					return new ASTree<Token>(new Token(tok, tokenList.get(1).getValue())).addBranch(parseStatement(tokenList.subList(3, tokenList.size())));
+				}
+			}
+		}
+		
+		return null;
 	}
 	
 	private static ASTree<Token> parseExpression(List<Token> tokenList) throws ParseException{
@@ -64,30 +128,12 @@ public class Parser {
 	}
 	
 	private static ASTree<Token> splitParenthesis(List<Token> tokenList) throws ParseException {
-		int index = 0;
 		
-		//Finds first parenthesis
-		while (!tokenList.get(index).equals(TokenType.LEFT_PAREN) && index != tokenList.size() - 1)
-			index++;
-		
-		//If no parenthesis, return null
-		if (index == tokenList.size() - 1)
+		Bounds<Integer> bounds = getParenBounds(tokenList, 0, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
+		if(bounds==null)
 			return null;
 		
-		//Finds the ending parenthesis
-		int last = index, find = 1, count = 0;
-		while ((count != find) && last != (tokenList.size()-1)) {
-			last++;
-			//Incremental counters for finding matching parenthesis
-			if (tokenList.get(last).equals(TokenType.LEFT_PAREN))
-				find++;
-			if (tokenList.get(last).equals(TokenType.RIGHT_PAREN))
-				count++;
-		}
-		
-		//If no matching parenthesis
-		if ((last == tokenList.size() - 1) && count != find)
-			throw new ParseException("Invalid parenthesis");
+		int index = bounds.left, last = bounds.right;
 		
 		int val = GLOBAL_COUNTER++;
 		ASTree<Token> paren = parseExpression(new ArrayList<Token>(tokenList.subList(index + 1, last)));
@@ -130,15 +176,64 @@ public class Parser {
 
 	}
 	
-	private static SplitArray<Token> split(List<Token> tokenList, Token splitToken){
+	private static int findValue(List<Token> tokenList, Token token){
 		int index = -1;
 		//Finds index of token
 		for (int i = 0; i < tokenList.size(); i++) {
-			if (tokenList.get(i).equals(splitToken.getTokenType())) {
+			if (tokenList.get(i).equals(token.getTokenType())) {
 				index = i;
 				break;
 			}
 		}
+		return index;
+	}
+	
+	private static void printList(List<Token> list){
+		for(Token tok : list){
+			System.out.print(tok + ", ");
+		}
+		System.out.println();
+	}
+	
+	private static Bounds<Integer> getParenBounds(List<Token> tokenList, int start, TokenType left, TokenType right) throws ParseException{
+		int index = start;
+		
+		//Finds first parenthesis
+		while (!tokenList.get(index).equals(left) && index != tokenList.size() - 1)
+			index++;
+		
+		//If no parenthesis, return null
+		if (index == tokenList.size() - 1)
+			return null;
+		
+		//Finds the ending parenthesis
+		int last = index, find = 1, count = 0;
+		while ((count != find) && last != (tokenList.size()-1)) {
+			last++;
+			//Incremental counters for finding matching parenthesis
+			if (tokenList.get(last).equals(left))
+				find++;
+			if (tokenList.get(last).equals(right))
+				count++;
+		}
+		
+		//If no matching parenthesis
+		if ((last == tokenList.size() - 1) && count != find)
+			throw new ParseException("Invalid matching between: " + left + " and " + right);
+		
+		return new Parser().new Bounds<Integer>(index, last);
+	}
+	
+	private class Bounds<T>{
+		public T left, right;
+		public Bounds(T one, T two){
+			left = one;
+			right = two;
+		}
+	}
+	
+	private static SplitArray<Token> split(List<Token> tokenList, Token splitToken){
+		int index = findValue(tokenList, splitToken);
 		//If no value
 		if(index==-1)
 			return null;

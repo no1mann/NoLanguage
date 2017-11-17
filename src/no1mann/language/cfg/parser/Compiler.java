@@ -1,6 +1,7 @@
 package no1mann.language.cfg.parser;
 
 import no1mann.language.cfg.SourceFile;
+import no1mann.language.cfg.exceptions.DeclerationException;
 import no1mann.language.cfg.exceptions.InvalidInputException;
 import no1mann.language.cfg.exceptions.ParseException;
 import no1mann.language.cfg.exceptions.TypeErrorException;
@@ -21,21 +22,23 @@ public class Compiler {
 		tree = Parser.parse(Tokenize.tokenize(file));
 	}
 	
-	public void execute() throws TypeErrorException{
+	public void execute() throws TypeErrorException, DeclerationException{
 		Executor.execute(tree);
 	}
 	
 	public void printTree(){
-		printTree(tree, 0);
+		System.out.println(printTree(tree, 0));
 	}
 	
-	private static String printTree(ASTree<Token> tree, int count){
+	public static String printTree(ASTree<Token> sTree, int count){
+		if(sTree==null)
+			return "";
 		String s = "";
 		for(int i = 0; i < count; i++){
 			s+="\t";
 		}
-		s += (tree.getValue() + "\n");
-		for(ASTree<Token> newTree : tree.getBranches()){
+		s += (sTree.getValue() + "\n");
+		for(ASTree<Token> newTree : sTree.getBranches()){
 			s += printTree(newTree, count+1);
 		}
 		return s;

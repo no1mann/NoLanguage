@@ -18,6 +18,10 @@ public class Tokenize{
 		String[] rawInput = file.getData().split(WHITE_SPACE);
 		//Cycles through all tokens
 		for(String input : rawInput){
+			
+			if(input.length()==0)
+				continue;
+			
 			// Parse input
 			TokenReturn tokenReturn = parseToken(input);
 			tokenList.add(tokenReturn.token);
