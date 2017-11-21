@@ -15,19 +15,19 @@ public class Parser {
 	};
 	
 	private static final TokenType[] OPERATORS = {
-			TokenType.MOD, 
-			TokenType.PLUS, 
-			TokenType.SUB, 
-			TokenType.MULT, 
-			TokenType.DIV, 
-			TokenType.POW,
 			TokenType.OR, 
 			TokenType.AND, 
 			TokenType.EQUAL, 
 			TokenType.GREATER_EQUAL, 
 			TokenType.GREATER, 
 			TokenType.LESS_EQUAL,
-			TokenType.LESS};
+			TokenType.LESS,
+			TokenType.MOD, 
+			TokenType.PLUS, 
+			TokenType.SUB, 
+			TokenType.MULT, 
+			TokenType.DIV, 
+			TokenType.POW};
 	
 	//Counter for parsing parenthesis
 	private static int GLOBAL_COUNTER = 0;
@@ -38,6 +38,8 @@ public class Parser {
 	}
 	
 	private static boolean match(List<Token> tokenList, TokenType tok, int index){
+		if(tokenList.size()<=index)
+			return false;
 		return tokenList.get(index).equals(tok);
 	}
 	

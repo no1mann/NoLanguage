@@ -30,17 +30,15 @@ public class Environment {
 	
 	public boolean getBool(String var) throws TypeErrorException{
 		EnvironmentValue val = environment.get(var);
-		if(val.type == EnvironmentType.BOOLEAN){
+		if(val.type == EnvironmentType.BOOLEAN)
 			return (boolean)val.value;
-		}
 		throw new TypeErrorException("Variable " + var + " is not a boolean");
 	}
 	
 	public int getInt(String var) throws TypeErrorException{
 		EnvironmentValue val = environment.get(var);
-		if(val.type == EnvironmentType.INTEGER){
+		if(val.type == EnvironmentType.INTEGER)
 			return (int)val.value;
-		}
 		throw new TypeErrorException("Variable " + var + " is not a integer");
 	}
 	
@@ -52,12 +50,10 @@ public class Environment {
 			this.value = value;
 		}
 		public String toString(){
-			if(value instanceof Integer){
+			if(value instanceof Integer)
 				return (Integer)value + "";
-			}
-			else if(value instanceof Boolean){
+			else if(value instanceof Boolean)
 				return (Boolean)value + "";
-			}
 			return (String)value;
 		}
 	}
