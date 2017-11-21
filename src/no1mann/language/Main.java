@@ -16,7 +16,7 @@ public class Main {
 			SourceFile file = new SourceFile("C:\\Users\\Trevor\\Google Drive\\Workspaces\\Eclipse\\NoLanguage\\src\\no1mann\\language\\test.txt");
 			Compiler compile = new Compiler(file);
 			compile.compile();
-			//compile.printTree();
+			compile.printTree();
 			compile.execute();
 
 

@@ -17,7 +17,8 @@ public class Parser {
 	private static final TokenType[] OPERATORS = {
 			TokenType.OR, 
 			TokenType.AND, 
-			TokenType.EQUAL, 
+			TokenType.EQUAL,
+			TokenType.NOT_EQUAL,
 			TokenType.GREATER_EQUAL, 
 			TokenType.GREATER, 
 			TokenType.LESS_EQUAL,
