@@ -67,6 +67,17 @@ public class Parser {
 				throw new ParseException("Failure to parse if statement: missing bracket in " + tokenList.toString());
 			return ifStatement.addBranch(parseStatement(new ArrayList<Token>(tokenList.subList(start, tokenList.size()))));
 		}
+		//Parses while statement
+		else if(match(tokenList, TokenType.WHILE)){
+				Bounds<Integer> expBounds = getParenBounds(tokenList, 0, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
+				ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
+				Bounds<Integer> stateBounds = getParenBounds(tokenList, (expBounds.right+1), TokenType.LEFT_BRACKET, TokenType.RIGHT_BRACKET);
+				ASTree<Token> statement = parseStatement(new ArrayList<Token>(tokenList.subList(stateBounds.left+1, stateBounds.right)));
+				if(!match(tokenList, TokenType.RIGHT_BRACKET, stateBounds.right))
+					throw new ParseException("Failure to parse if statement: missing bracket in " + tokenList.toString());
+				ASTree<Token> rest = parseStatement(new ArrayList<Token>(tokenList.subList(stateBounds.right+1, tokenList.size())));
+				return new ASTree<Token>(new Token(TokenType.WHILE)).addBranch(exp).addBranch(statement).addBranch(rest);
+			}
 		//Parses assignment
 		else if(match(tokenList, TokenType.VAR_NAME) && match(tokenList, TokenType.ASSIGN, 1)){
 			int index = findValue(tokenList, new Token(TokenType.SEMICOLON));
@@ -79,17 +90,16 @@ public class Parser {
 		else if(match(tokenList, TokenType.PRINT)){
 			Bounds<Integer> expBounds = getParenBounds(tokenList, 1, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
 			ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
-			if(match(tokenList, TokenType.SEMICOLON, (expBounds.right+1))){
+			if(match(tokenList, TokenType.SEMICOLON, (expBounds.right+1)))
 				return new ASTree<Token>(new Token(TokenType.PRINT)).addBranch(exp).addBranch(parseStatement(new ArrayList<Token>(tokenList.subList(expBounds.right+2, tokenList.size()))));
-			}else
+			else
 				throw new ParseException("Failure to parse, missing semicolon");
 		}
 		else {
 		//Parses declaration
 			for(TokenType tok : VALUE_TYPES){
-				if(match(tokenList, tok) && match(tokenList, TokenType.VAR_NAME, 1) && match(tokenList, TokenType.SEMICOLON, 2)){
+				if(match(tokenList, tok) && match(tokenList, TokenType.VAR_NAME, 1) && match(tokenList, TokenType.SEMICOLON, 2))
 					return new ASTree<Token>(new Token(tok, tokenList.get(1).getValue())).addBranch(parseStatement(tokenList.subList(3, tokenList.size())));
-				}
 			}
 		}
 		
@@ -135,7 +145,7 @@ public class Parser {
 		
 		int index = bounds.left, last = bounds.right;
 		
-		int val = GLOBAL_COUNTER++;
+		String val = (GLOBAL_COUNTER++) + "";
 		ASTree<Token> paren = parseExpression(new ArrayList<Token>(tokenList.subList(index + 1, last)));
 		
 		// Parenthesis around whole expression

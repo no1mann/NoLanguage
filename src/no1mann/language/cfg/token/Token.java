@@ -3,13 +3,13 @@ package no1mann.language.cfg.token;
 public class Token {
 
 	private TokenType type;
-	private Object value = null;
+	private String value = null;
 	
 	public Token(TokenType type){
 		this.type = type;
 	}
 	
-	public Token(TokenType type, Object value){
+	public Token(TokenType type, String value){
 		this(type);
 		this.value = value;
 	}
@@ -18,7 +18,7 @@ public class Token {
 		return type;
 	}
 	
-	public Object getValue(){
+	public String getValue(){
 		return value;
 	}
 	

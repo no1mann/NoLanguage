@@ -28,9 +28,8 @@ public class ASTree<T> implements Iterable<ASTree<T>>{
 				branches.set(i, tree);
 				return;
 			}
-			else{
+			else
 				branch.replace(tree, replace);
-			}
 		}
 	}
 	

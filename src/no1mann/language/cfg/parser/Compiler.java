@@ -34,13 +34,11 @@ public class Compiler {
 		if(sTree==null)
 			return "";
 		String s = "";
-		for(int i = 0; i < count; i++){
+		for(int i = 0; i < count; i++)
 			s+="\t";
-		}
 		s += (sTree.getValue() + "\n");
-		for(ASTree<Token> newTree : sTree.getBranches()){
+		for(ASTree<Token> newTree : sTree.getBranches())
 			s += printTree(newTree, count+1);
-		}
 		return s;
 	}
 	

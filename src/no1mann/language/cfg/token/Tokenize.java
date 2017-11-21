@@ -32,7 +32,6 @@ public class Tokenize{
 				tokenList.add(tokenReturn.token);
 			}
 		}
-		//tokenList.add(new Token(TokenType.EOF, null));
 		return tokenList;
 	}
 	
