@@ -22,6 +22,7 @@ while(i <= max){
 		}
 	}
 	if(i%1000 == 0){
+		print(i);
 	}
 	i = i + 1;
 }

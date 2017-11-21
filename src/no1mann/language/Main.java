@@ -17,20 +17,19 @@ public class Main {
 			Compiler compile = new Compiler(file);
 			compile.compile();
 			compile.printTree();
-			compile.execute();
+			try {
+				compile.execute();
+			} catch (TypeErrorException | DeclerationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 
 			
 			
 		} catch (InvalidInputException e) {
 			e.printStackTrace();
-		}  catch (TypeErrorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (DeclerationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}catch (ParseException e){
+		}  catch (ParseException e){
 			e.printStackTrace();
 		}
 	}

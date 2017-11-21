@@ -47,7 +47,9 @@ public enum TokenType {
 	VAR_NAME(Pattern.compile("^([A-Za-z0-9]+)(.*)")),
 	TEMP(Pattern.compile("a^")),
 	EOF(Pattern.compile(".*")),
-	END_OF_STATEMENT(Pattern.compile(".*"));
+	END_OF_STATEMENT(Pattern.compile(".*")),
+	TRUE_STATEMENT(Pattern.compile(".*")),
+	FALSE_STATEMENT(Pattern.compile(".*"));
 	
 	private Pattern pattern;
 	TokenType(Pattern pat){

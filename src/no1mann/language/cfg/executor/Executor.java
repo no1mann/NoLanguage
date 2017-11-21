@@ -10,18 +10,22 @@ import no1mann.language.cfg.token.TokenType;
 public class Executor {
 	
 	public static void execute(ASTree<Token> tree) throws TypeErrorException, DeclerationException{
-		executeStatement(new Environment(), tree);
+		executeFunction(new Environment(), tree);
+	}
+	
+	private static void executeFunction(Environment env, ASTree<Token> tree) throws TypeErrorException, DeclerationException{
+		for(ASTree<Token> branch  : tree){
+			executeStatement(env, branch);
+		}
 	}
 	
 	private static void executeStatement(Environment env, ASTree<Token> tree) throws TypeErrorException, DeclerationException{
 		if(tree==null || tree.getValue().equals(TokenType.END_OF_STATEMENT))
 			return;
 		Token tok = tree.getValue();
-		int execute = 1;
 		for(TokenType type : Parser.VALUE_TYPES){
 			if(tok.equals(type)){
 				executeInstantiate(tok, env);
-				execute = 0;
 			}
 		}
 		if (tok.equals(TokenType.PRINT))
@@ -31,18 +35,14 @@ public class Executor {
 		else if (tok.equals(TokenType.IF)){
 			if(tree.numberOfBranches()==4){
 				executeIf(tree.getBranch(0), tree.getBranch(1), tree.getBranch(2), env);
-				execute = 3;
 			}
 			else{
 				executeIf(tree.getBranch(0), tree.getBranch(1), null, env);
-				execute = 2;
 			}
 		}
 		else if (tok.equals(TokenType.WHILE)){
 			executeWhile(tree.getBranch(0), tree.getBranch(1), env);
-			execute = 2;
 		}
-		executeStatement(env, tree.getBranch(execute));
 	}
 	
 	private static void executeInstantiate(Token tok, Environment env) throws DeclerationException{
@@ -71,17 +71,17 @@ public class Executor {
 	private static void executeIf(ASTree<Token> expression, ASTree<Token> trueState, ASTree<Token> falseState, Environment env) throws TypeErrorException, DeclerationException{
 		boolean result = (boolean)executeExpression(env, expression);
 		if(result){
-			executeStatement(env, trueState);
+			executeFunction(env, trueState);
 		}
 		else if(falseState != null){
-			executeStatement(env, falseState);
+			executeFunction(env, falseState);
 		}
 	}
 	
 	private static void executeWhile(ASTree<Token> expression, ASTree<Token> statement, Environment env) throws TypeErrorException, DeclerationException{
 		boolean state = (boolean)executeExpression(env, expression);
 		while(state){
-			executeStatement(env, statement);
+			executeFunction(env, statement);
 			state = (boolean)executeExpression(env, expression);
 		}
 	}
