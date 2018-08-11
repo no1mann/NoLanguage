@@ -36,9 +36,13 @@ public class Parser {
 	
 	public static ASTree<Token> parse(List<Token> tokenList) throws ParseException{
 		GLOBAL_COUNTER = 0;
-		TreeReturn ret = parseStatement(tokenList, 0, tokenList.size());
-		ASTree<Token> tree = new ASTree<Token>(new Token(TokenType.MAIN)).addBranch(ret.tree);
-		while(ret.indexStart<tokenList.size()){
+		return parseFunction(tokenList, 0, tokenList.size(), TokenType.MAIN);
+	}
+	
+	private static ASTree<Token> parseFunction(List<Token> tokenList, int startIndex, int endIndex, TokenType head) throws ParseException{
+		TreeReturn ret = parseStatement(tokenList, startIndex, endIndex);
+		ASTree<Token> tree = new ASTree<Token>(new Token(head)).addBranch(ret.tree);
+		while(ret.indexStart < endIndex){
 			ret = parseStatement(tokenList, ret.indexStart, tokenList.size());
 			tree.addBranch(ret.tree);
 		}
@@ -47,6 +51,7 @@ public class Parser {
 	
 	private class TreeReturn{
 		private ASTree<Token> tree;
+		@SuppressWarnings("unused")
 		private int indexStart, indexEnd;
 		public TreeReturn(ASTree<Token> tree, int indexStart, int indexEnd){
 			this.tree = tree;
@@ -62,81 +67,93 @@ public class Parser {
 	}
 	
 	private static TreeReturn parseStatement(List<Token> tokenList, int indexStart, int indexEnd) throws ParseException{
+		//Empty list or End of statement
 		if(indexStart>=tokenList.size() || indexStart==indexEnd)
 			return parser.new TreeReturn(new ASTree<Token>(new Token(TokenType.END_OF_STATEMENT)), indexStart, indexEnd);
 		//Parses if statement
 		if(match(tokenList, TokenType.IF, indexStart)){
-			Bounds<Integer> expBounds = getParenBounds(tokenList, indexStart, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
-			ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
-			Bounds<Integer> trueBounds = getParenBounds(tokenList, (expBounds.right+1), TokenType.LEFT_BRACKET, TokenType.RIGHT_BRACKET);
-			TreeReturn trueStatement = parseStatement(tokenList, trueBounds.left+1, trueBounds.right);
-			ASTree<Token> tree = new ASTree<Token>(new Token(TokenType.TRUE_STATEMENT)).addBranch(trueStatement.tree);
-			while(trueStatement.indexStart<trueBounds.right){
-				trueStatement = parseStatement(tokenList, trueStatement.indexStart, tokenList.size());
-				tree.addBranch(trueStatement.tree);
-			}
-			ASTree<Token> ifStatement = (new ASTree<Token>(new Token(TokenType.IF)).addBranch(exp).addBranch(tree));
-			int start = trueBounds.right+1;
-			if(	match(tokenList, TokenType.RIGHT_BRACKET, trueBounds.right) &&
-				match(tokenList, TokenType.ELSE, trueBounds.right+1)){
-				Bounds<Integer> falseBounds = getParenBounds(tokenList, (trueBounds.right+2), TokenType.LEFT_BRACKET, TokenType.RIGHT_BRACKET);
-				TreeReturn falseStatment = parseStatement(tokenList, falseBounds.left+1, falseBounds.right);
-				tree = new ASTree<Token>(new Token(TokenType.FALSE_STATEMENT)).addBranch(falseStatment.tree);
-				while(falseStatment.indexStart<falseBounds.right){
-					falseStatment = parseStatement(tokenList, falseStatment.indexStart, tokenList.size());
-					tree.addBranch(falseStatment.tree);
-				}
-				ifStatement.addBranch(tree);
-				start = falseBounds.right+1;
-				if(!match(tokenList, TokenType.RIGHT_BRACKET, falseBounds.right))
-					throw new ParseException("Failure to parse if statement: missing bracket in " + tokenList.toString());
-			} 
-			else if(!match(tokenList, TokenType.RIGHT_BRACKET, trueBounds.right))
-				throw new ParseException("Failure to parse if statement: missing bracket in " + tokenList.toString());
-			return parser.new TreeReturn(ifStatement, start, tokenList.size());
+			return parseIfStatement(tokenList, indexStart, indexEnd);
 		}
 		//Parses while statement
 		else if(match(tokenList, TokenType.WHILE, indexStart)){
-			Bounds<Integer> expBounds = getParenBounds(tokenList, indexStart, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
-			ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
-			Bounds<Integer> stateBounds = getParenBounds(tokenList, (expBounds.right+1), TokenType.LEFT_BRACKET, TokenType.RIGHT_BRACKET);
-			TreeReturn statement = parseStatement(tokenList, stateBounds.left+1, stateBounds.right);
-			ASTree<Token> tree = new ASTree<Token>(new Token(TokenType.TRUE_STATEMENT)).addBranch(statement.tree);
-			while(statement.indexStart<stateBounds.right){
-				statement = parseStatement(tokenList, statement.indexStart, tokenList.size());
-				tree.addBranch(statement.tree);
-			}
-			if(!match(tokenList, TokenType.RIGHT_BRACKET, stateBounds.right))
-				throw new ParseException("Failure to parse if statement: missing bracket in " + tokenList.toString());
-			return parser.new TreeReturn(new ASTree<Token>(new Token(TokenType.WHILE)).addBranch(exp).addBranch(tree), stateBounds.right+1, tokenList.size());
+			return parseWhile(tokenList, indexStart, indexEnd);
 		}
 		//Parses assignment
 		else if(match(tokenList, TokenType.VAR_NAME, indexStart) && match(tokenList, TokenType.ASSIGN, indexStart+1)){
-			int index = findValue(tokenList, new Token(TokenType.SEMICOLON), indexStart);
-			if(index==-1)
-				throw new ParseException("Failure to parse, missing semicolon");
-			ASTree<Token> expression = parseExpression(new ArrayList<Token>(tokenList.subList(indexStart+2, index)));
-			return parser.new TreeReturn(new ASTree<Token>(new Token(TokenType.VAR_NAME, tokenList.get(indexStart).getValue())).addBranch(expression), index+1, tokenList.size());
+			return parseAssignment(tokenList, indexStart, indexEnd);
 		}
 		//Parses print
 		else if(match(tokenList, TokenType.PRINT, indexStart)){
-			Bounds<Integer> expBounds = getParenBounds(tokenList, indexStart+1, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
-			ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
-			if(match(tokenList, TokenType.SEMICOLON, (expBounds.right+1)))
-				return parser.new TreeReturn(new ASTree<Token>(new Token(TokenType.PRINT)).addBranch(exp), expBounds.right+2, tokenList.size());
-			else
-				throw new ParseException("Failure to parse, missing semicolon");
+			return parsePrint(tokenList, indexStart, indexEnd);
 		}
 		else {
 		//Parses declaration
 			for(TokenType tok : VALUE_TYPES){
 				if(match(tokenList, tok, indexStart) && match(tokenList, TokenType.VAR_NAME, indexStart+1) && match(tokenList, TokenType.SEMICOLON, indexStart+2))
-					return parser.new TreeReturn( new ASTree<Token>(new Token(tok, tokenList.get(indexStart+1).getValue())), indexStart+3, tokenList.size());
+					return parseDecleration(tokenList, indexStart, indexEnd, tok);
 			}
 		}
 		
 		return null;
 	}
+	
+	private static TreeReturn parseIfStatement(List<Token> tokenList, int indexStart, int indexEnd) throws ParseException {
+		if(!match(tokenList, TokenType.IF, indexStart))
+			throw new ParseException("Error parsing if statement");
+		Bounds<Integer> expBounds = getParenBounds(tokenList, indexStart, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
+		ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
+		Bounds<Integer> trueBounds = getParenBounds(tokenList, (expBounds.right+1), TokenType.LEFT_BRACKET, TokenType.RIGHT_BRACKET);
+		ASTree<Token> tree = parseFunction(tokenList, trueBounds.left+1, trueBounds.right, TokenType.TRUE_STATEMENT);
+		ASTree<Token> ifStatement = (new ASTree<Token>(new Token(TokenType.IF)).addBranch(exp).addBranch(tree));
+		int start = trueBounds.right+1;
+		if(	match(tokenList, TokenType.RIGHT_BRACKET, trueBounds.right) &&
+			match(tokenList, TokenType.ELSE, trueBounds.right+1)){
+			Bounds<Integer> falseBounds = getParenBounds(tokenList, (trueBounds.right+2), TokenType.LEFT_BRACKET, TokenType.RIGHT_BRACKET);
+			tree = parseFunction(tokenList, falseBounds.left+1, falseBounds.right, TokenType.FALSE_STATEMENT);
+			ifStatement.addBranch(tree);
+			start = falseBounds.right+1;
+			if(!match(tokenList, TokenType.RIGHT_BRACKET, falseBounds.right))
+				throw new ParseException("Failure to parse if statement: missing bracket in " + tokenList.toString());
+		} 
+		else if(!match(tokenList, TokenType.RIGHT_BRACKET, trueBounds.right))
+			throw new ParseException("Failure to parse if statement: missing bracket in " + tokenList.toString());
+		return parser.new TreeReturn(ifStatement, start, tokenList.size());
+	}
+	
+	private static TreeReturn parseWhile(List<Token> tokenList, int indexStart, int indexEnd) throws ParseException {
+		if(!match(tokenList, TokenType.WHILE, indexStart))
+			throw new ParseException("Error parsing while loop");
+		Bounds<Integer> expBounds = getParenBounds(tokenList, indexStart, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
+		ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
+		Bounds<Integer> stateBounds = getParenBounds(tokenList, (expBounds.right+1), TokenType.LEFT_BRACKET, TokenType.RIGHT_BRACKET);
+		ASTree<Token> tree = parseFunction(tokenList, stateBounds.left+1, stateBounds.right, TokenType.TRUE_STATEMENT);
+		if(!match(tokenList, TokenType.RIGHT_BRACKET, stateBounds.right))
+			throw new ParseException("Failure to parse if statement: missing bracket in " + tokenList.toString());
+		return parser.new TreeReturn(new ASTree<Token>(new Token(TokenType.WHILE)).addBranch(exp).addBranch(tree), stateBounds.right+1, tokenList.size());
+	}
+	
+	private static TreeReturn parseAssignment(List<Token> tokenList, int indexStart, int indexEnd) throws ParseException {
+		if(!match(tokenList, TokenType.VAR_NAME, indexStart) && match(tokenList, TokenType.ASSIGN, indexStart+1))
+			throw new ParseException("Error parsing assignment");
+		int index = findValue(tokenList, new Token(TokenType.SEMICOLON), indexStart);
+		if(index==-1)
+			throw new ParseException("Failure to parse, missing semicolon");
+		ASTree<Token> expression = parseExpression(new ArrayList<Token>(tokenList.subList(indexStart+2, index)));
+		return parser.new TreeReturn(new ASTree<Token>(new Token(TokenType.VAR_NAME, tokenList.get(indexStart).getValue())).addBranch(expression), index+1, tokenList.size());
+	}
+	
+	private static TreeReturn parsePrint(List<Token> tokenList, int indexStart, int indexEnd) throws ParseException {
+		Bounds<Integer> expBounds = getParenBounds(tokenList, indexStart+1, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN);
+		ASTree<Token> exp = parseExpression(new ArrayList<Token>(tokenList.subList(expBounds.left, expBounds.right+1)));
+		if(!match(tokenList, TokenType.SEMICOLON, (expBounds.right+1)))
+			throw new ParseException("Failure to parse, missing semicolon");
+		return parser.new TreeReturn(new ASTree<Token>(new Token(TokenType.PRINT)).addBranch(exp), expBounds.right+2, tokenList.size());
+	}
+	
+	private static TreeReturn parseDecleration(List<Token> tokenList, int indexStart, int indexEnd, TokenType tok) {
+		return parser.new TreeReturn( new ASTree<Token>(new Token(tok, tokenList.get(indexStart+1).getValue())), indexStart+3, tokenList.size());
+	}
+	
 	
 	private static ASTree<Token> parseExpression(List<Token> tokenList) throws ParseException{
 		if(tokenList == null)
@@ -230,6 +247,7 @@ public class Parser {
 		return index;
 	}
 	
+	@SuppressWarnings("unused")
 	private static void printList(List<Token> list){
 		for(Token tok : list){
 			System.out.print(tok + ", ");

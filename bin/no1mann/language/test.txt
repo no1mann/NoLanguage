@@ -1,29 +1,34 @@
-int i;
 int max;
-int count;
-bool found;
-int temp;
-
-i = 2;
 max = 100000;
 
+int i;
+i = 2;
+
+bool found;
+int count;
+int temp;
+
+int prev;
+
 while(i <= max){
-	count = 3;
-	
-	if((i%2 != 0) && (i%5 != 0)){
+	if(i%2!=0 && i%5!=0){
+		temp = (i+1)/2;
+		count = 2;
 		found = true;
-		temp = (i-1)/2;
-		while(count <= temp){
-			if(i%count == 0){
+		while(count<=temp){
+			if(i%count==0){
 				found = false;
-				count = i;
 			}
-			count = count + 2	;
+			count = count + 1;
 		}
-	}
-	if(i%1000 == 0){
-		print(i);
+		if(found){
+			if(i-prev==2){
+				print(prev);
+				print(i);
+				print(true);
+			}
+			prev = i;
+		}
 	}
 	i = i + 1;
 }
-print(true);

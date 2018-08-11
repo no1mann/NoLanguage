@@ -1,8 +1,13 @@
 package no1mann.language.cfg.token;
 
+/*
+ * Token instance for each section of code
+ */
 public class Token {
-
+	
+	//Type of token
 	private TokenType type;
+	//Raw string that was parsed
 	private String value = null;
 	
 	public Token(TokenType type){
@@ -23,12 +28,10 @@ public class Token {
 	}
 	
 	public boolean equals(Object token){
-		if(token instanceof TokenType){
+		if(token instanceof TokenType)
 			return token.equals(type);
-		}
-		else if(token instanceof Token){
+		else if(token instanceof Token)
 			return ((Token) token).getTokenType().equals(type) && ((Token) token).getValue().equals(value);
-		}
 		return false;
 	}
 	

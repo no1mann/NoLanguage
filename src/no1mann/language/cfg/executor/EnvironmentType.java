@@ -2,8 +2,11 @@ package no1mann.language.cfg.executor;
 
 import no1mann.language.cfg.token.TokenType;
 
+/*
+ * List of all declarable variables
+ */
 public enum EnvironmentType {
-	INTEGER(0, TokenType.INT_TYPE),
+	INTEGER(0L, TokenType.INT_TYPE),
 	BOOLEAN(false, TokenType.BOOL_TYPE);
 	
 	private Object defaultValue;

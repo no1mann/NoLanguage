@@ -2,6 +2,10 @@ package no1mann.language.cfg.token;
 
 import java.util.regex.Pattern;
 
+/*
+ * Tokens for loading source code file
+ * Uses regular expressions for tokenizing source code
+ */
 public enum TokenType {
 	//DATA VALUES
 	INT_VAL(Pattern.compile("^(\\d+)(.*)")),

@@ -7,14 +7,22 @@ import java.util.regex.Matcher;
 import no1mann.language.cfg.SourceFile;
 import no1mann.language.cfg.exceptions.InvalidInputException;
 
+/*
+ * Tokenizes source code for internal representation
+ * Makes compiling the source code easier
+ */
 public class Tokenize{
 	
 	private static final String WHITE_SPACE = "\\s+";
 	
+	/*
+	 * Tokenizes source code
+	 * Throws an InvalidInputException when text can't be tokenized
+	 */
 	public static List<Token> tokenize(SourceFile file) throws InvalidInputException{
 		List<Token> tokenList = new ArrayList<Token>();
 		
-		//Splits tokens up
+		//Splits tokens up by white space
 		String[] rawInput = file.getData().split(WHITE_SPACE);
 		//Cycles through all tokens
 		for(String input : rawInput){
@@ -27,14 +35,14 @@ public class Tokenize{
 			tokenList.add(tokenReturn.token);
 
 			// If input is not finished parsing
-			while (tokenReturn.result.length() != 0) {
-				tokenReturn = parseToken(tokenReturn.result);
-				tokenList.add(tokenReturn.token);
-			}
+			while (tokenReturn.result.length() != 0)
+				tokenList.add((tokenReturn = parseToken(tokenReturn.result)).token);
+			
 		}
 		return tokenList;
 	}
 	
+	//Parses single token
 	private static TokenReturn parseToken(String input) throws InvalidInputException{
 		//Cycles through token matcher to find correct token
 		for(TokenType type : TokenType.values()){
@@ -52,6 +60,9 @@ public class Tokenize{
 		throw new InvalidInputException("Failed to tokenize at " + input);
 	}
 	
+	/*
+	 * Token return value for tracking parsed tokens
+	 */
 	private class TokenReturn{
 		public Token token;
 		public String result;
