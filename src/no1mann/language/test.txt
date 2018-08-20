@@ -1,33 +1,23 @@
 int max;
-max = 100000;
-
 int i;
-i = 2;
-
+int tracking;
 bool found;
-int count;
-int temp;
 
-int prev;
+max = 1000;
 
+i = 2;
 while(i <= max){
-	if(i%2!=0 && i%5!=0){
-		temp = (i+1)/2;
-		count = 2;
+	if((i%2!=0 && i%5!=0) || i<7){
+		tracking = 2;
 		found = true;
-		while(count<=temp){
-			if(i%count==0){
+		while(tracking < (i/2)){
+			if(i % tracking == 0){
 				found = false;
 			}
-			count = count + 1;
+			tracking = tracking + 1;
 		}
 		if(found){
-			if(i-prev==2){
-				print(prev);
-				print(i);
-				print(true);
-			}
-			prev = i;
+			print(i);
 		}
 	}
 	i = i + 1;

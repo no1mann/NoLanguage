@@ -58,7 +58,7 @@ public class Executor {
 		//Checks if the token is an if statement
 		else if (tok.equals(TokenType.IF)){
 			//If statement with else statement
-			if(tree.numberOfBranches()==4)
+			if(tree.numberOfBranches()==3)
 				executeIf(tree.getBranch(0), tree.getBranch(1), tree.getBranch(2), env);
 			//No else statement
 			else
