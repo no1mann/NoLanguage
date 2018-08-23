@@ -9,6 +9,7 @@ public class Token {
 	private TokenType type;
 	//Raw string that was parsed
 	private String value = null;
+	private int pointer = 0;
 	
 	public Token(TokenType type){
 		this.type = type;
@@ -19,12 +20,22 @@ public class Token {
 		this.value = value;
 	}
 	
+	public Token(TokenType type, int value){
+		this(type);
+		this.pointer = value;
+		this.value = value + "";
+	}
+	
 	public TokenType getTokenType(){
 		return type;
 	}
 	
 	public String getValue(){
 		return value;
+	}
+	
+	public int getPointer(){
+		return pointer;
 	}
 	
 	public boolean equals(Object token){

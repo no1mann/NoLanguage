@@ -1,6 +1,7 @@
 package no1mann.language.cfg.parser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import no1mann.language.cfg.exceptions.ParseException;
@@ -80,6 +81,9 @@ public class Parser {
 	private static int globalCounter = 0;
 	//Global instance for class instantiating
 	private static Parser parser = new Parser();
+	//Variable references
+	private static HashMap<String,Integer> variableList;
+	private static int newVarName = 1;
 	
 	
 	/*
@@ -96,10 +100,14 @@ public class Parser {
 	 * Throws a Parse Exception when a parse fails
 	 */
 	public static ASTree<Token> parse(List<Token> tokenList) throws ParseException{
+		variableList = new HashMap<String,Integer>();
 		//Resets counter for parenthesis tracking
 		globalCounter = 0;
 		//Parses main function. Change this when functions are implemented
-		return parseFunction(tokenList, 0, tokenList.size(), TokenType.MAIN);
+		ASTree<Token> tree = parseFunction(tokenList, 0, tokenList.size(), TokenType.MAIN);
+		variableList.clear();
+		newVarName = 1;
+		return tree;
 	}
 	
 	/*
@@ -264,7 +272,7 @@ public class Parser {
 		//Parses the expression on the right hand side of the assignment
 		ASTree<Token> expression = parseExpression(new ArrayList<Token>(tokenList.subList(indexStart+2, index)));
 		//Returns the assignment abstract syntax tree
-		return parser.new TreeReturn(new ASTree<Token>(new Token(TokenType.VAR_NAME, tokenList.get(indexStart).getValue())).addBranch(expression), index+1, tokenList.size());
+		return parser.new TreeReturn(new ASTree<Token>(new Token(TokenType.VAR_NAME, variableList.get(tokenList.get(indexStart).getValue()))).addBranch(expression), index+1, tokenList.size());
 	}
 	
 	/*
@@ -299,8 +307,12 @@ public class Parser {
 	 * TokenType tok: Variable type
 	 */
 	private static TreeReturn parseDecleration(List<Token> tokenList, int indexStart, int indexEnd, TokenType tok) {
+		String value = tokenList.get(indexStart+1).getValue();
+		if(!variableList.containsKey(tokenList.get(indexStart+1).getValue())){
+			variableList.put(value, newVarName++);
+		}
 		//Returns the deceleration statement for the abstract syntax tree
-		return parser.new TreeReturn( new ASTree<Token>(new Token(tok, tokenList.get(indexStart+1).getValue())), indexStart+3, tokenList.size());
+		return parser.new TreeReturn( new ASTree<Token>(new Token(tok, variableList.get(value))), indexStart+3, tokenList.size());
 	}
 	
 	/*
@@ -327,8 +339,12 @@ public class Parser {
 		}
 		
 		//Data type parser - retrieve value from variable or static input
-		if(tokenList.size()==1)
-			return new ASTree<Token>(tokenList.get(0));
+		if(tokenList.size()==1){
+			Token val = tokenList.get(0);
+			if(val.getTokenType().equals(TokenType.VAR_NAME))
+				val = new Token(TokenType.VAR_NAME, variableList.get(val.getValue()));
+			return new ASTree<Token>(val);
+		}
 		
 		//Failure
 		throw new ParseException("Failure to parse " + tokenList.toString());

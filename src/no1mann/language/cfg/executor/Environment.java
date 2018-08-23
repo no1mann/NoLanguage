@@ -1,7 +1,5 @@
 package no1mann.language.cfg.executor;
 
-import java.util.HashMap;
-
 import no1mann.language.cfg.exceptions.TypeErrorException;
 
 /*
@@ -11,10 +9,10 @@ import no1mann.language.cfg.exceptions.TypeErrorException;
  */
 public class Environment {
 
-	private HashMap<String, EnvironmentValue> environment;
+	private EnvironmentValue[] environment = new EnvironmentValue[10000];
 	
 	public Environment(){
-		environment = new HashMap<String, EnvironmentValue>();
+		environment = new EnvironmentValue[10000];
 	}
 	
 	/*
@@ -22,51 +20,51 @@ public class Environment {
 	 * String var : variable name
 	 * EnvironmentType type : variable type (integer, boolean, etc.)
 	 */
-	public void instantiate(String var, EnvironmentType type){
-		environment.put(var, new EnvironmentValue(type, type.getDefaultValue()));
+	public void instantiate(int pointer, EnvironmentType type){
+		environment[pointer] = new EnvironmentValue(type, type.getDefaultValue());
 	}
 	
 	/*
 	 * Checks if a variable is instantiated
 	 */
-	public boolean isInstantiated(String var){
-		return environment.containsKey(var);
+	public boolean isInstantiated(int pointer){
+		return environment[pointer]!=null;
 	}
 	
 	/*
 	 * Updates the value of a variable
 	 */
-	public void set(String var, Object val){
-		environment.get(var).value = val;
+	public void set(int pointer, Object val){
+		environment[pointer].value = val;
 	}
 	
 	/*
 	 * Gets the current value of a variable
 	 */
-	public Object getVariable(String var){
-		return environment.get(var).value;
+	public Object getVariable(int pointer){
+		return environment[pointer].value;
 	}
 	
 	/*
 	 * Gets the boolean value of a variable
 	 * A TypeErrorException is thrown if the variable is not a boolean
 	 */
-	public boolean getBool(String var) throws TypeErrorException{
-		EnvironmentValue val = environment.get(var);
+	public boolean getBool(int pointer) throws TypeErrorException{
+		EnvironmentValue val = environment[pointer];
 		if(val.type == EnvironmentType.BOOLEAN)
 			return (boolean)val.value;
-		throw new TypeErrorException("Variable " + var + " is not a boolean");
+		throw new TypeErrorException("Variable is not a boolean");
 	}
 	
 	/*
 	 * Gets the integer value of a variable
 	 * A TypeErrorException is thrown if the variable is not an integer
 	 */
-	public long getInt(String var) throws TypeErrorException{
-		EnvironmentValue val = environment.get(var);
+	public long getInt(int pointer) throws TypeErrorException{
+		EnvironmentValue val = environment[pointer];
 		if(val.type == EnvironmentType.INTEGER)
 			return (long)val.value;
-		throw new TypeErrorException("Variable " + var + " is not a integer");
+		throw new TypeErrorException("Variable is not a integer");
 	}
 	
 	/*

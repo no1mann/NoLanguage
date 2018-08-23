@@ -117,18 +117,12 @@ public class Executor {
 		//Gets current token of root of tree
 		Token tok = tree.getValue();
 		//Checks if the token is variable that needs to be instantiated
-		for(TokenType type : Parser.VALUE_TYPES){
+		for(TokenType type : Parser.VALUE_TYPES)
 			if(tok.equals(type))
 				executeInstantiate(tok, env);
-		}
-		//Checks if the token is a print statement
-		if (tok.equals(TokenType.PRINT))
-			executePrint(tree.getBranch(0), env);
-		//Checks if the token is a variable assignment
-		else if (tok.equals(TokenType.VAR_NAME))
-			executeAssignment(tok.getValue(), tree.getBranch(0), env);
+		
 		//Checks if the token is an if statement
-		else if (tok.equals(TokenType.IF)){
+		if (tok.equals(TokenType.IF)){
 			//If statement with else statement
 			if(tree.numberOfBranches()==3)
 				executeIf(tree.getBranch(0), tree.getBranch(1), tree.getBranch(2), env);
@@ -136,6 +130,12 @@ public class Executor {
 			else
 				executeIf(tree.getBranch(0), tree.getBranch(1), null, env);
 		}
+		//Checks if the token is a print statement
+		else if (tok.equals(TokenType.PRINT))
+			executePrint(tree.getBranch(0), env);
+		//Checks if the token is a variable assignment
+		else if (tok.equals(TokenType.VAR_NAME))
+			executeAssignment(tok.getPointer(), tree.getBranch(0), env);
 		//Checks if the token is a while loop
 		else if (tok.equals(TokenType.WHILE))
 			executeWhile(tree.getBranch(0), tree.getBranch(1), env);
@@ -147,11 +147,11 @@ public class Executor {
 	 */
 	private static void executeInstantiate(Token tok, Environment env) throws DeclerationException{
 		//If variable is not instantiated
-		if(!env.isInstantiated(tok.getValue())){
+		if(!env.isInstantiated(tok.getPointer())){
 			for(EnvironmentType envType : EnvironmentType.values())
 				//Finds EnvironmentType that matches token
 				if(tok.getTokenType() == envType.getMatchingToken())
-					env.instantiate(tok.getValue(), envType);
+					env.instantiate(tok.getPointer(), envType);
 			
 		//Variable already declared
 		} else
@@ -174,11 +174,11 @@ public class Executor {
 	 * TypeErrorException is thrown if the variable is not a valid type
 	 * DeclerationException is thrown if a variable is already defined
 	 */
-	private static void executeAssignment(String var, ASTree<Token> expression, Environment env) throws TypeErrorException, DeclerationException{
-		if(env.isInstantiated(var))
-			env.set(var, executeExpression(env, expression));
+	private static void executeAssignment(int pointer, ASTree<Token> expression, Environment env) throws TypeErrorException, DeclerationException{
+		if(env.isInstantiated(pointer))
+			env.set(pointer, executeExpression(env, expression));
 		else
-			throw new DeclerationException("Variable \"" + var+ "\" not defined");
+			throw new DeclerationException("Variable not defined");
 	}
 	
 	/*
@@ -228,8 +228,8 @@ public class Executor {
 				return Boolean.parseBoolean(tok.getValue());
 			//Variable
 			else if(tok.equals(TokenType.VAR_NAME)){
-				if(env.isInstantiated(tok.getValue()))
-					return env.getVariable(tok.getValue());
+				if(env.isInstantiated(tok.getPointer()))
+					return env.getVariable(tok.getPointer());
 				
 				throw new DeclerationException("Variable not declared");
 			}
