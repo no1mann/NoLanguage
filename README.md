@@ -28,7 +28,7 @@ while(i <= max){
 	if((i%2!=0 && i%5!=0) || i<7){
 		tracking = 2;
 		found = true;
-		while(tracking < (i/2)){
+		while(tracking <= (i/2)){
 			if(i % tracking == 0){
 				found = false;
 			}
