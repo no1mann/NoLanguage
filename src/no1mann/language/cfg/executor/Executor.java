@@ -13,13 +13,85 @@ import no1mann.language.cfg.token.TokenType;
 public class Executor {
 	
 	/*
+	 * Printing class for printing to the output
+	 * Improves efficiency to have dedicated thread
+	 */
+	public class PrintOutput{
+		private StringBuilder str;
+		
+		public PrintOutput(){
+			str = new StringBuilder(1024);
+		}
+		
+		public void append(String app){
+			str.append(app);
+			str.append("\n");
+		}
+		
+		public void print(){
+			System.out.print(str);
+			str.delete(0, str.length());
+		}
+		
+		//If something has to be printed
+		public synchronized boolean toPrint(){
+			return str.length()!=0;
+		}
+	}
+	
+	//Tracks what needs to be printed
+	private static PrintOutput printer = (new Executor()).new PrintOutput();
+	//Dedicated printing thread
+	private static Thread printThread;
+	private static boolean enablePrint = false;
+	
+	static{
+		/*
+		 * Main printing thread
+		 */
+		printThread = new Thread(new Runnable(){
+			@Override
+			public void run() {
+				while(enablePrint){
+					//Print to the output ever 1/10 of a second
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					if(printer.toPrint())
+						printer.print();
+				}
+			}
+		});
+	}
+	
+	/*
+	 * Prints string to the output
+	 */
+	public static void printToOutput(String val){
+		printer.append(val);
+	}
+	
+	/*
+	 * Waits for printing thread to finish
+	 */
+	public static void waitForPrinting() throws InterruptedException{
+		printThread.join();
+	}
+	
+	/*
 	 * Executes compiled code stored in an Abstract Syntax Tree
 	 * TypeErrorException is thrown if the variable is not a valid type
 	 * DeclerationException is thrown if a variable is already defined
 	 */
 	public static void execute(ASTree<Token> tree) throws TypeErrorException, DeclerationException{
+		enablePrint = true;
+		printThread.start();
 		executeFunction(new Environment(), tree);
+		enablePrint = false;
 	}
+
 	
 	/*
 	 * Executes compiled function stored in an Abstract Syntax Tree with a given Environment
@@ -76,11 +148,11 @@ public class Executor {
 	private static void executeInstantiate(Token tok, Environment env) throws DeclerationException{
 		//If variable is not instantiated
 		if(!env.isInstantiated(tok.getValue())){
-			for(EnvironmentType envType : EnvironmentType.values()){
+			for(EnvironmentType envType : EnvironmentType.values())
 				//Finds EnvironmentType that matches token
 				if(tok.getTokenType() == envType.getMatchingToken())
 					env.instantiate(tok.getValue(), envType);
-			}
+			
 		//Variable already declared
 		} else
 			throw new DeclerationException("Variable already defined");
@@ -92,7 +164,7 @@ public class Executor {
 	 * DeclerationException is thrown if a variable is already defined
 	 */
 	private static void executePrint(ASTree<Token> expression, Environment env) throws TypeErrorException, DeclerationException{
-		System.out.println(executeExpression(env, expression).toString());
+		printer.append(executeExpression(env, expression).toString());
 	}
 	
 	/*
@@ -118,8 +190,7 @@ public class Executor {
 	 * DeclerationException is thrown if a variable is already defined
 	 */
 	private static void executeIf(ASTree<Token> expression, ASTree<Token> trueState, ASTree<Token> falseState, Environment env) throws TypeErrorException, DeclerationException{
-		boolean result = (boolean)executeExpression(env, expression);
-		if(result)
+		if((boolean)executeExpression(env, expression))
 			executeFunction(env, trueState);
 		else if(falseState != null)
 			executeFunction(env, falseState);
@@ -133,9 +204,7 @@ public class Executor {
 	 * DeclerationException is thrown if a variable is already defined
 	 */
 	private static void executeWhile(ASTree<Token> expression, ASTree<Token> statement, Environment env) throws TypeErrorException, DeclerationException{
-		@SuppressWarnings("unused")
-		boolean state;
-		while(state = (boolean)executeExpression(env, expression))
+		while((boolean)executeExpression(env, expression))
 			executeFunction(env, statement);
 	}
 	
@@ -161,15 +230,14 @@ public class Executor {
 			else if(tok.equals(TokenType.VAR_NAME)){
 				if(env.isInstantiated(tok.getValue()))
 					return env.getVariable(tok.getValue());
-				else
-					throw new DeclerationException("Variable not declared");
+				
+				throw new DeclerationException("Variable not declared");
 			}
 		} 
 		//If 2 branches
 		else if(tree.numberOfBranches()==2){
 			//Gets left and right branches
-			Object left = executeExpression(env, tree.getBranch(0));
-			Object right = executeExpression(env, tree.getBranch(1));
+			Object left = executeExpression(env, tree.getBranch(0)), right = executeExpression(env, tree.getBranch(1));
 			
 			//INTEGER OPERATORS
 			if (left instanceof Long && right instanceof Long && tree.numberOfBranches()==2) {

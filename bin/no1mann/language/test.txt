@@ -3,7 +3,7 @@ int i;
 int tracking;
 bool found;
 
-max = 1000;
+max = 10000;
 
 i = 2;
 while(i <= max){

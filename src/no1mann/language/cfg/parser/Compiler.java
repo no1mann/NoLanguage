@@ -36,12 +36,16 @@ public class Compiler {
 	
 	//Executes compiled code
 	public void execute() throws TypeErrorException, DeclerationException{
-		System.out.println("Executing code at " + LOG_TIME.format(new Date()));
-		System.out.println("------------------------------------------------");
+		Executor.printToOutput("Executing code at " + LOG_TIME.format(new Date()));
+		Executor.printToOutput("------------------------------------------------");
 		long time = System.currentTimeMillis();
 		Executor.execute(tree);
+		long done = System.currentTimeMillis();
+		try {
+			Executor.waitForPrinting();
+		} catch (InterruptedException e) { e.printStackTrace(); }
 		System.out.println("------------------------------------------------");
-		System.out.println("Finished execution at " + LOG_TIME.format(new Date()) + " (" + ((double)(System.currentTimeMillis()-time)/1000.0) + "s)");
+		System.out.println("Finished execution at " + LOG_TIME.format(new Date()) + " (" + ((double)(done-time)/1000.0) + "s)");
 	}
 	
 	//Prints the compiled abstract syntax tree
