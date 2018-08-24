@@ -5,11 +5,10 @@ import no1mann.language.cfg.exceptions.TypeErrorException;
 /*
  * The Environment class keeps track of variable values in the virtual environment
  * Newly instantiated variables are given a default value
- * A HashMap keeps track of all variables in the virtual environment 
  */
 public class Environment {
 
-	private EnvironmentValue[] environment = new EnvironmentValue[10000];
+	private EnvironmentValue[] environment;
 	
 	public Environment(){
 		environment = new EnvironmentValue[10000];
@@ -17,7 +16,7 @@ public class Environment {
 	
 	/*
 	 * Instantiates a new variable of the given type
-	 * String var : variable name
+	 * int pointer : variable pointer
 	 * EnvironmentType type : variable type (integer, boolean, etc.)
 	 */
 	public void instantiate(int pointer, EnvironmentType type){
