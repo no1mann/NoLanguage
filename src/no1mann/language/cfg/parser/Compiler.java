@@ -37,6 +37,7 @@ public class Compiler {
 		this.file = file;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Compiler(String file) throws IOException{
 		if(file.endsWith(".no")){
 			byte[] byteArray = Files.readAllBytes(new File(file).toPath());
@@ -49,6 +50,8 @@ public class Compiler {
 			} catch (ClassNotFoundException e) {
 				System.out.print("Error loading compiled No code...");
 			}
+		    is.close();
+		    in.close();
 		}
 	}
 	
