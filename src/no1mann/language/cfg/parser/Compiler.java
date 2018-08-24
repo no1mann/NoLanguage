@@ -1,5 +1,13 @@
 package no1mann.language.cfg.parser;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -29,6 +37,21 @@ public class Compiler {
 		this.file = file;
 	}
 	
+	public Compiler(String file) throws IOException{
+		if(file.endsWith(".no")){
+			byte[] byteArray = Files.readAllBytes(new File(file).toPath());
+			ByteArrayInputStream in = new ByteArrayInputStream(byteArray);
+		    ObjectInputStream is = new ObjectInputStream(in);
+		    try {
+		    	Object obj = is.readObject();
+		    	if(obj instanceof ASTree<?>)
+		    		tree = (ASTree<Token>)obj;
+			} catch (ClassNotFoundException e) {
+				System.out.print("Error loading compiled No code...");
+			}
+		}
+	}
+	
 	//Compiles source code
 	public void compile() throws ParseException, InvalidInputException{
 		tree = Parser.parse(Tokenize.tokenize(file));
@@ -48,6 +71,20 @@ public class Compiler {
 		System.out.println("Finished execution at " + LOG_TIME.format(new Date()) + " (" + ((double)(done-time)/1000.0) + "s)");
 	}
 	
+	//Exports compiled code
+	public void saveCompiledCode() throws IOException{
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(bos);
+		oos.writeObject(tree);
+		oos.flush();
+		oos.close();
+		bos.close();
+		String filePath = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-file.getName().length());
+		try (FileOutputStream fos = new FileOutputStream(filePath + "\\" + file.getName() + ".no")) {
+			fos.write(bos.toByteArray());
+		}
+	}
+	
 	//Prints the compiled abstract syntax tree
 	public void printTree(){
 		System.out.println(printTree(tree, 0));
@@ -56,7 +93,7 @@ public class Compiler {
 	/*
 	 * Prints the abstract syntax tree for debugging
 	 */
-	public static String printTree(ASTree<Token> sTree, int count){
+	private static String printTree(ASTree<Token> sTree, int count){
 		String s = "";
 		if(sTree==null)
 			return s;

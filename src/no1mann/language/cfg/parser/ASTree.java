@@ -1,5 +1,6 @@
 package no1mann.language.cfg.parser;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -8,8 +9,10 @@ import java.util.List;
  * Abstract Syntax Tree
  * Standard Tree data structure with any number of branches allowed
  */
-public class ASTree<T> implements Iterable<ASTree<T>>{
+public class ASTree<T> implements Iterable<ASTree<T>>, Serializable{
 	
+	private static final long serialVersionUID = 1L;
+
 	//Each branch of the tree
 	private ArrayList<ASTree<T>> branches = new ArrayList<ASTree<T>>();
 	

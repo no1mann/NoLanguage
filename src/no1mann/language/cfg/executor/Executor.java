@@ -169,7 +169,7 @@ public class Executor {
 	
 	/*
 	 * Executes compiled assignment statement
-	 * String var: variable name to assign the new value
+	 * int pointer: variable name to assign the new value
 	 * ASTree expression : expression to execute, result is updated value
 	 * TypeErrorException is thrown if the variable is not a valid type
 	 * DeclerationException is thrown if a variable is already defined

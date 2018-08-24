@@ -1,9 +1,13 @@
 package no1mann.language.cfg.token;
 
+import java.io.Serializable;
+
 /*
  * Token instance for each section of code
  */
-public class Token {
+public class Token implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
 	
 	//Type of token
 	private TokenType type;
